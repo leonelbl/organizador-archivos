@@ -101,11 +101,11 @@ Las contribuciones son bienvenidas. Por favor:
 
 ## 📝 Licencia
 
-Este proyecto está bajo la Licencia MIT.
+Este proyecto está bajo la Licencia MIT. Revisa el archivo [LICENSE](LICENSE)
 
 ## 🐛 Issues
 
-Si encuentras algún bug o tienes sugerencias, por favor abre un issue en [GitHub Issues](https://github.com/tu-usuario/organizador-archivos/issues).
+Si encuentras algún bug o tienes sugerencias, por favor abre un issue en [GitHub Issues](https://github.com/leonelbl/organizador-archivos/issues).
 
 ## 📈 Roadmap
 
