@@ -1,0 +1,22 @@
+[package]
+name = "organizador-archivos"
+version = "0.1.0"
+edition = "2021"
+description = "Herramienta de CLI para la organización automática de archivos según su extensión."
+license = "MIT"
+repository = "https://github.com/leonelbl/organizador-archivos"
+authors = ["leonelbl"]
+keywords = ["cli", "archivo", "organizador", "automatizacion", "rust"]
+categories = ["command-line-utilities", "filesystem"]
+readme = "README.md"
+
+[dependencies]
+colored = "3.0.0"
+directories = "6.0.0"
+notify-rust = "4.11.7"
+walkdir = "2.5.0"
+
+[profile.release]
+strip = true
+opt-level = "z"
+lto = true
