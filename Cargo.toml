@@ -1,6 +1,6 @@
 [package]
 name = "organizador-archivos"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "Herramienta CLI para organizar automáticamente archivos por extensión con Feature-Based Architecture."
 license = "MIT"

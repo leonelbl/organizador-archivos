@@ -1,7 +1,7 @@
+use crate::shared::domain::OperationRecord;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
-use crate::shared::domain::OperationRecord;
 
 pub struct History {
     file_path: PathBuf,
@@ -32,7 +32,7 @@ impl History {
         let reader = BufReader::new(file);
 
         let mut last = None;
-        for line in reader.lines().filter_map(|l| l.ok()) {
+        for line in reader.lines().map_while(Result::ok) {
             if let Ok(record) = serde_json::from_str::<OperationRecord>(&line) {
                 last = Some(record);
             }
@@ -70,7 +70,7 @@ impl History {
 
         let file = File::open(&self.file_path).map_err(|e| e.to_string())?;
         let reader = BufReader::new(file);
-        let mut lineas: Vec<String> = reader.lines().filter_map(|l| l.ok()).collect();
+        let mut lineas: Vec<String> = reader.lines().map_while(Result::ok).collect();
 
         if lineas.is_empty() {
             return Ok(());

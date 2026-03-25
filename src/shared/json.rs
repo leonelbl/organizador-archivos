@@ -1,13 +1,4 @@
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct JsonFileRecord {
-    pub nombre: String,
-    pub origen: String,
-    pub destino: String,
-    pub conflicto: bool,
-    pub renombrado: bool,
-}
+use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 pub struct JsonResult {
@@ -15,7 +6,6 @@ pub struct JsonResult {
     pub archivos_encontrados: usize,
     pub archivos_movidos: usize,
     pub conflictos_resueltos: usize,
-    pub archivos: Vec<JsonFileRecord>,
     pub mensaje: String,
 }
 
@@ -38,11 +28,13 @@ impl JsonOutput {
             archivos_encontrados: movidos,
             archivos_movidos: movidos,
             conflictos_resueltos: conflictos,
-            archivos: vec![],
             mensaje,
         };
 
-        println!("{}", serde_json::to_string_pretty(&resultado).unwrap_or_default());
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&resultado).unwrap_or_default()
+        );
     }
 
     pub fn print_no_files(&self) {
@@ -51,10 +43,12 @@ impl JsonOutput {
             archivos_encontrados: 0,
             archivos_movidos: 0,
             conflictos_resueltos: 0,
-            archivos: vec![],
             mensaje: "No se encontraron archivos".to_string(),
         };
-        println!("{}", serde_json::to_string_pretty(&resultado).unwrap_or_default());
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&resultado).unwrap_or_default()
+        );
     }
 }
 

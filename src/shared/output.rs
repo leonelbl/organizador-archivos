@@ -8,30 +8,12 @@ impl Output {
         Self
     }
 
-    pub fn info(&self, mensaje: &str) {
-        println!("{} {}", "INFO:".bright_green().bold(), mensaje);
-    }
-
     pub fn files_found(&self, cantidad: usize, directorio: &str) {
         println!(
             "INFO: Se encontraron {} archivos en {}",
             cantidad.to_string().yellow(),
             directorio.cyan()
         );
-    }
-
-    pub fn simulate_preview(&self, archivos: &[&str]) {
-        for archivo in archivos {
-            println!("  SIMULAR: {:?}", archivo.green());
-        }
-    }
-
-    pub fn file_moved(&self, nombre: &str) {
-        println!("  {}", format!("✔ {}", nombre).green());
-    }
-
-    pub fn error(&self, mensaje: &str) {
-        eprintln!("{}", format!("ERROR: {}", mensaje).red().bold());
     }
 
     pub fn confirm(&self) -> bool {
@@ -80,7 +62,10 @@ impl Output {
             "DESHACER:".bright_magenta().bold(),
             timestamp.cyan()
         );
-        println!("  {} archivos serán restaurados", cantidad.to_string().yellow());
+        println!(
+            "  {} archivos serán restaurados",
+            cantidad.to_string().yellow()
+        );
         println!("  Directorio: {}\n", directorio);
     }
 
@@ -89,10 +74,6 @@ impl Output {
             "\nFINALIZADO: Se revirtieron {} archivos.",
             revertidos.to_string().yellow().bold()
         );
-    }
-
-    pub fn notification(&self, titulo: &str, cuerpo: &str) {
-        println!("\n{} {}: {}", "NOTIFICACIÓN:".bright_yellow().bold(), titulo, cuerpo);
     }
 }
 

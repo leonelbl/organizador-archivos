@@ -9,12 +9,13 @@ impl Notifier {
     }
 
     pub fn notify(&self, title: &str, body: &str) {
-        if let Ok(_) = Notification::new()
+        if Notification::new()
             .summary(title)
             .body(body)
             .icon("folder-download")
             .timeout(5000)
             .show()
+            .is_ok()
         {
             return;
         }
