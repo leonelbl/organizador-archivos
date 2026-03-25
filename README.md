@@ -1,64 +1,148 @@
 # Organizador de Archivos
 
-Una herramienta CLI en Rust para organizar automáticamente archivos por extensión.
+Herramienta CLI en Rust para organizar automáticamente archivos por extensión.
 
-## 🚀 Características
+## Características
 
-- **Organización automática**: Mueve archivos por extensión a subcarpetas
-- **Interfaz amigable**: Salida colorida y confirmación interactiva
-- **Notificaciones multi-escritorio**: Compatible con COSMIC, GNOME, KDE, y más
-- **Seguro**: Pide confirmación antes de mover archivos
-- **Rápido**: Escaneo eficiente de directorios
+- **Feature-Based Architecture**: Código modular y extensible
+- **Comando por defecto**: `organizar` se ejecuta sin necesidad de especificarlo
+- **Modo recursivo**: Busca en subdirectorios
+- **Simulación**: Previsualiza archivos sin mover
+- **Resolución de conflictos**: Nombres duplicados se renombran automáticamente
+- **Deshacer**: Revierte movimientos realizados
+- **Salida JSON**: Para integración con scripts
+- **Log persistente**: Registro de operaciones
+- **Interfaz amigable**: Colores y confirmación interactiva
+- **Notificaciones multiplataforma**: GNOME, KDE, y más
 
-## 📦 Instalación
-
-### Desde el código fuente
+## Instalación
 
 ```bash
-git clone https://github.com/tu-usuario/organizador-archivos.git
+git clone https://github.com/leonelbl/organizador-archivos.git
 cd organizador-archivos
 cargo build --release
 ```
 
-El binario compilado estará en `target/release/organizador-archivos`.
+El binario estará en `target/release/organizador-archivos`.
 
-## 🛠️ Uso
+## Arquitectura
 
-```bash
-organizador-archivos <directorio> <extensión>
+```
+src/
+├── main.rs              # Entry point
+├── cli.rs               # CLI con argumentos
+├── shared/              # Código compartido
+│   ├── domain.rs        # Tipos (MoveRecord, OperationRecord)
+│   ├── json.rs          # Serialización JSON
+│   ├── log.rs           # Logging
+│   ├── notification.rs  # Notificaciones del sistema
+│   └── output.rs        # Salida con colores
+├── organize/            # Feature: organizar
+│   ├── cli.rs           # Args del comando
+│   ├── execute.rs       # Lógica principal
+│   ├── mover.rs         # Movimiento de archivos
+│   └── scanner.rs       # Escaneo de directorios
+└── undo/                # Feature: deshacer
+    ├── execute.rs       # Lógica de reversión
+    └── history.rs       # Manejo de historial
 ```
 
-### Ejemplos
+## Uso
 
 ```bash
-# Organizar archivos .MOV en Downloads
-organizador-archivos ~/Downloads .MOV
-
-# Organizar archivos .pdf en Documents
-organizador-archivos ~/Documents .pdf
-
-# Organizar archivos .zip en el directorio actual
-organizador-archivos . .zip
+organizador-archivos <DIRECTORIO> [OPTIONS]
 ```
 
-## 📋 Cómo funciona
+**Opciones:**
+```
+-e, --extension <EXT>   Extensión a organizar
+-r, --recursivo         Buscar en subdirectorios
+-s, --si                Confirmar automáticamente
+-n, --simular           Simular sin mover archivos
+-j, --json              Salida en formato JSON
+-l, --log <ARCHIVO>     Guardar registro en archivo
+-d, --deshacer          Deshacer última operación
+-h, --help              Mostrar ayuda
+```
 
-1. **Escaneo**: Busca archivos con la extensión especificada en el directorio
-2. **Confirmación**: Muestra los archivos encontrados y pide confirmación
-3. **Organización**: Crea una carpeta con el nombre de la extensión (si no existe)
-4. **Movimiento**: Mueve todos los archivos encontrados a la carpeta correspondiente
-5. **Notificación**: Envía una notificación del sistema con el resultado
+## Ejemplos
 
-## 🔧 Dependencias
+```bash
+# Organizar una extensión (comando 'organizar' es implícito)
+organizador-archivos ~/Descargas -e pdf
 
-- `colored`: Salida colorida en terminal
+# Con confirmación automática
+organizador-archivos ~/Descargas -e mp3 -s
+
+# Modo recursivo
+organizador-archivos ~/Descargas -e mp4 -r -s
+
+# Simular sin mover
+organizador-archivos ~/Descargas -e mp4 -n
+
+# Salida JSON
+organizador-archivos ~/Descargas -e pdf -j -s
+
+# Log de operaciones
+organizador-archivos ~/Descargas -e zip -l ~/.organizador.log -s
+
+# Deshacer última operación
+organizador-archivos -d
+```
+
+## Cómo funciona
+
+1. **Escaneo**: Busca archivos con la extensión especificada
+2. **Confirmación**: Muestra archivos y pide confirmación (excepto con `-s`)
+3. **Organización**: Crea carpeta con el nombre de la extensión
+4. **Movimiento**: Mueve archivos, renombrando conflictos automáticamente
+5. **Registro**: Guarda historial para posible reversión
+6. **Notificación**: Envía notificación del sistema
+
+## Conflictos de nombres
+
+Si ya existe un archivo con el mismo nombre en el destino, se renombra automáticamente:
+
+```
+archivo.txt      → archivo_1.txt
+archivo.txt      → archivo_2.txt
+```
+
+## Salida JSON
+
+Útil para integración con scripts:
+
+```json
+{
+  "success": true,
+  "archivos_encontrados": 3,
+  "archivos_movidos": 3,
+  "conflictos_resueltos": 0,
+  "archivos": [],
+  "mensaje": "Se movieron 3 archivos"
+}
+```
+
+## Historial
+
+El historial se guarda en `.organizador_history.json`. Para revertir:
+
+```bash
+organizador-archivos -d
+```
+
+## Dependencias
+
+- `clap`: Parsing de argumentos CLI
+- `colored`: Salida con colores en terminal
+- `chrono`: Timestamps para logs
 - `notify-rust`: Notificaciones del sistema
+- `serde`: Serialización JSON
 - `walkdir`: Escaneo eficiente de directorios
-- `directories`: Utilidades de directorios del sistema
 
-## 🖥️ Compatibilidad
+## Compatibilidad
 
-### Sistemas de notificación soportados
+### Notificaciones
 
 - **notify-rust**: Compatible con la mayoría de escritorios Linux
 - **notify-send**: Sistemas Linux estándar
@@ -72,49 +156,6 @@ organizador-archivos . .zip
 - 🔄 macOS (parcialmente compatible)
 - ❌ Windows (no compatible actualmente)
 
-## 🎯 Ejemplo de uso
+## Licencia
 
-```bash
-$ organizador-archivos ~/Downloads .MOV
-
-FOUND: Se encontraron 5 archivos .MOV en /home/user/Downloads
-¿Confirmas mover estos archivos? [s/N]: s
-OK: Carpeta creada: /home/user/Downloads/MOV
-  ✔ video1.MOV
-  ✔ video2.MOV
-  ✔ video3.MOV
-  ✔ video4.MOV
-  ✔ video5.MOV
-
-FINALIZADO: Se movieron 5 archivos a la carpeta MOV.
-```
-
-## 🤝 Contribuir
-
-Las contribuciones son bienvenidas. Por favor:
-
-1. Fork del proyecto
-2. Crea una rama (`git checkout -b feature/nueva-caracteristica`)
-3. Commit tus cambios (`git commit -am 'Añadir nueva característica'`)
-4. Push a la rama (`git push origin feature/nueva-caracteristica`)
-5. Abre un Pull Request
-
-## 📝 Licencia
-
-Este proyecto está bajo la Licencia MIT. Revisa el archivo [LICENSE](LICENSE)
-
-## 🐛 Issues
-
-Si encuentras algún bug o tienes sugerencias, por favor abre un issue en [GitHub Issues](https://github.com/leonelbl/organizador-archivos/issues).
-
-## 📈 Roadmap
-
-- [ ] Soporte para Windows
-- [ ] Modo recursivo (subdirectorios)
-- [ ] Archivo de configuración
-- [ ] Múltiples extensiones simultáneas
-- [ ] Modo "dry run" (simulación sin mover)
-
----
-
-**Creado con Rust**
+MIT License - ver archivo [LICENSE](LICENSE)

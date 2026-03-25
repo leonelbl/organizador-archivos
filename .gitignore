@@ -20,3 +20,9 @@ Thumbs.db
 # Backup files
 *.bak
 *.backup
+
+# Test directories
+/test_dir/
+
+# History files
+.organizador_history.json
