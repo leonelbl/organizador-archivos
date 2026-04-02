@@ -32,4 +32,7 @@ pub struct Cli {
 
     #[arg(short = 'd', long = "deshacer", help = "Deshacer última operación")]
     pub deshacer: bool,
+
+    #[arg(long = "destino", help = "Directorio de destino personalizado", value_hint = ValueHint::DirPath)]
+    pub destino: Option<PathBuf>,
 }

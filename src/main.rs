@@ -39,6 +39,7 @@ fn main() {
             json: cli.json,
             log_file: cli.log_file,
             undo_file: std::path::PathBuf::from(".organizador_history.json"),
+            destino: cli.destino,
         };
         let cmd = OrganizeCommand::new(args.log_file.clone());
         if let Err(e) = cmd.execute(&args) {

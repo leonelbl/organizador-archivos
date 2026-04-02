@@ -27,6 +27,16 @@ impl OrganizeCommand {
         let extensions = args.get_extensions()?;
         args.validate_dir()?;
 
+        if let Some(ref destino) = args.destino {
+            if !destino.exists() {
+                if let Err(e) = std::fs::create_dir_all(destino) {
+                    return Err(format!("No se pudo crear directorio de destino: {}", e));
+                }
+            } else if !destino.is_dir() {
+                return Err("El destino especificado no es un directorio".to_string());
+            }
+        }
+
         let mut total_movidos = 0;
         let mut total_conflictos = 0;
         let mut todos_movidos: Vec<MoveRecord> = Vec::new();
@@ -52,14 +62,23 @@ impl OrganizeCommand {
             let usar_barra = archivos.len() >= 5;
             let (movidos, conflictos) = if usar_barra && !args.dry_run {
                 let barra = BarraProgreso::new(archivos.len());
-                let resultado =
-                    self.mover
-                        .mover_con_progreso(&archivos, &args.directorio, extension, &barra);
+                let resultado = self.mover.mover_con_progreso(
+                    &archivos,
+                    &args.directorio,
+                    extension,
+                    args.destino.as_deref(),
+                    &barra,
+                );
                 barra.finalizar();
                 resultado
             } else {
-                self.mover
-                    .mover(&archivos, &args.directorio, extension, args.dry_run)
+                self.mover.mover(
+                    &archivos,
+                    &args.directorio,
+                    extension,
+                    args.dry_run,
+                    args.destino.as_deref(),
+                )
             };
 
             total_movidos += movidos.len();

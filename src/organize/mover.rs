@@ -17,8 +17,15 @@ impl Mover {
         directorio: &Path,
         extension: &str,
         _dry_run: bool,
+        destino_personalizado: Option<&Path>,
     ) -> (Vec<MoveRecord>, usize) {
-        self.mover_con_progreso(archivos, directorio, extension, &BarraProgreso::new(0))
+        self.mover_con_progreso(
+            archivos,
+            directorio,
+            extension,
+            destino_personalizado,
+            &BarraProgreso::new(0),
+        )
     }
 
     pub fn mover_con_progreso(
@@ -26,10 +33,12 @@ impl Mover {
         archivos: &[impl AsRef<Path>],
         directorio: &Path,
         extension: &str,
+        destino_personalizado: Option<&Path>,
         barra: &BarraProgreso,
     ) -> (Vec<MoveRecord>, usize) {
         let ext_folder = extension.trim_start_matches('.').to_lowercase();
-        let destino_dir = directorio.join(&ext_folder);
+        let destino_base = destino_personalizado.unwrap_or(directorio);
+        let destino_dir = destino_base.join(&ext_folder);
 
         if !destino_dir.exists() {
             if let Err(e) = fs::create_dir(&destino_dir) {
@@ -69,7 +78,7 @@ impl Mover {
         (movidos, conflictos)
     }
 
-    fn generar_nombre_unico(&self, destino_dir: &Path, archivo: &Path) -> std::path::PathBuf {
+    pub fn generar_nombre_unico(&self, destino_dir: &Path, archivo: &Path) -> std::path::PathBuf {
         let ext = archivo
             .extension()
             .and_then(|e| e.to_str())
