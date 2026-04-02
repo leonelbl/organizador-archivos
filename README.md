@@ -7,6 +7,7 @@ Herramienta CLI en Rust para organizar automáticamente archivos por extensión.
 - **Feature-Based Architecture**: Código modular y extensible
 - **Múltiples extensiones**: Organiza varios tipos de archivos a la vez
 - **Comando por defecto**: `organizar` se ejecuta sin necesidad de especificarlo
+- **Barra de progreso**: Muestra avance al mover 5 o más archivos
 - **Modo recursivo**: Busca en subdirectorios
 - **Simulación**: Previsualiza archivos sin mover
 - **Resolución de conflictos**: Nombres duplicados se renombran automáticamente
@@ -37,7 +38,8 @@ src/
 │   ├── json.rs          # Serialización JSON
 │   ├── log.rs           # Logging
 │   ├── notification.rs  # Notificaciones del sistema
-│   └── output.rs        # Salida con colores
+│   ├── output.rs        # Salida con colores
+│   └── progress.rs      # Barra de progreso
 ├── organize/            # Feature: organizar
 │   ├── cli.rs           # Args del comando
 │   ├── execute.rs       # Lógica principal
@@ -143,6 +145,7 @@ organizador-archivos -d
 - `clap`: Parsing de argumentos CLI
 - `colored`: Salida con colores en terminal
 - `chrono`: Timestamps para logs
+- `indicatif`: Barra de progreso
 - `notify-rust`: Notificaciones del sistema
 - `serde`: Serialización JSON
 - `walkdir`: Escaneo eficiente de directorios

@@ -1,7 +1,7 @@
 use super::cli::OrganizeArgs;
 use super::{Mover, Scanner};
 use crate::shared::domain::MoveRecord;
-use crate::shared::{JsonOutput, Logger, Notifier, OperationRecord, Output};
+use crate::shared::{BarraProgreso, JsonOutput, Logger, Notifier, OperationRecord, Output};
 use crate::undo::History;
 
 pub struct OrganizeCommand {
@@ -49,9 +49,18 @@ impl OrganizeCommand {
                 }
             }
 
-            let (movidos, conflictos) =
+            let usar_barra = archivos.len() >= 5;
+            let (movidos, conflictos) = if usar_barra && !args.dry_run {
+                let barra = BarraProgreso::new(archivos.len());
+                let resultado =
+                    self.mover
+                        .mover_con_progreso(&archivos, &args.directorio, extension, &barra);
+                barra.finalizar();
+                resultado
+            } else {
                 self.mover
-                    .mover(&archivos, &args.directorio, extension, args.dry_run);
+                    .mover(&archivos, &args.directorio, extension, args.dry_run)
+            };
 
             total_movidos += movidos.len();
             total_conflictos += conflictos;
