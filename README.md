@@ -5,7 +5,10 @@ Herramienta CLI en Rust para organizar automáticamente archivos por extensión.
 ## Características
 
 - **Feature-Based Architecture**: Código modular y extensible
+- **Múltiples extensiones**: Organiza varios tipos de archivos a la vez
+- **Destino personalizado**: Organiza archivos en un directorio específico
 - **Comando por defecto**: `organizar` se ejecuta sin necesidad de especificarlo
+- **Barra de progreso**: Muestra avance al mover 5 o más archivos
 - **Modo recursivo**: Busca en subdirectorios
 - **Simulación mejorada**: Muestra árbol de cambios antes de ejecutar
 - **Resolución de conflictos**: Nombres duplicados se renombran automáticamente
@@ -36,7 +39,8 @@ src/
 │   ├── json.rs          # Serialización JSON
 │   ├── log.rs           # Logging
 │   ├── notification.rs  # Notificaciones del sistema
-│   └── output.rs        # Salida con colores
+│   ├── output.rs        # Salida con colores
+│   └── progress.rs      # Barra de progreso
 ├── organize/            # Feature: organizar
 │   ├── cli.rs           # Args del comando
 │   ├── execute.rs       # Lógica principal
@@ -55,14 +59,15 @@ organizador-archivos <DIRECTORIO> [OPTIONS]
 
 **Opciones:**
 ```
--e, --extension <EXT>   Extensión a organizar
--r, --recursivo         Buscar en subdirectorios
--s, --si                Confirmar automáticamente
--n, --simular           Simular sin mover archivos
--j, --json              Salida en formato JSON
--l, --log <ARCHIVO>     Guardar registro en archivo
--d, --deshacer          Deshacer última operación
--h, --help              Mostrar ayuda
+-e, --extension <EXT>...  Extensiones a organizar (separadas por coma)
+-r, --recursivo          Buscar en subdirectorios
+-s, --si                 Confirmar automáticamente
+-n, --simular            Simular sin mover archivos
+-j, --json               Salida en formato JSON
+-l, --log <ARCHIVO>      Guardar registro en archivo
+-d, --deshacer           Deshacer última operación
+    --destino <DIR>      Directorio de destino personalizado
+-h, --help               Mostrar ayuda
 ```
 
 ## Ejemplos
@@ -88,6 +93,15 @@ organizador-archivos ~/Descargas -e zip -l ~/.organizador.log -s
 
 # Deshacer última operación
 organizador-archivos -d
+
+# Múltiples extensiones (con coma)
+organizador-archivos ~/Descargas -e pdf,doc,txt -s
+
+# Múltiples extensiones (con múltiples flags)
+organizador-archivos ~/Descargas -e pdf -e doc -e txt -s
+
+# Destino personalizado
+organizador-archivos ~/Descargas -e pdf --destino ~/Documentos -s
 ```
 
 ## Cómo funciona
@@ -136,6 +150,7 @@ organizador-archivos -d
 - `clap`: Parsing de argumentos CLI
 - `colored`: Salida con colores en terminal
 - `chrono`: Timestamps para logs
+- `indicatif`: Barra de progreso
 - `notify-rust`: Notificaciones del sistema
 - `serde`: Serialización JSON
 - `walkdir`: Escaneo eficiente de directorios

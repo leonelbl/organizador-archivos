@@ -22,8 +22,16 @@ fn main() {
             std::process::exit(1);
         }
     } else {
+        let directorio = match cli.directorio {
+            Some(d) => d,
+            None => {
+                eprintln!("ERROR: Debe especificar un directorio");
+                std::process::exit(1);
+            }
+        };
+
         let args = OrganizeArgs {
-            directorio: cli.directorio,
+            directorio,
             extension: cli.extension,
             recursivo: cli.recursivo,
             yes: cli.yes,
@@ -31,6 +39,7 @@ fn main() {
             json: cli.json,
             log_file: cli.log_file,
             undo_file: std::path::PathBuf::from(".organizador_history.json"),
+            destino: cli.destino,
         };
         let cmd = OrganizeCommand::new(args.log_file.clone());
         if let Err(e) = cmd.execute(&args) {

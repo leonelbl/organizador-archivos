@@ -1,4 +1,5 @@
 use crate::shared::domain::MoveRecord;
+use crate::shared::BarraProgreso;
 use chrono::Local;
 use std::fs;
 use std::path::Path;
@@ -15,12 +16,31 @@ impl Mover {
         archivos: &[impl AsRef<Path>],
         directorio: &Path,
         extension: &str,
-        dry_run: bool,
+        _dry_run: bool,
+        destino_personalizado: Option<&Path>,
+    ) -> (Vec<MoveRecord>, usize) {
+        self.mover_con_progreso(
+            archivos,
+            directorio,
+            extension,
+            destino_personalizado,
+            &BarraProgreso::new(0),
+        )
+    }
+
+    pub fn mover_con_progreso(
+        &self,
+        archivos: &[impl AsRef<Path>],
+        directorio: &Path,
+        extension: &str,
+        destino_personalizado: Option<&Path>,
+        barra: &BarraProgreso,
     ) -> (Vec<MoveRecord>, usize) {
         let ext_folder = extension.trim_start_matches('.').to_lowercase();
-        let destino_dir = directorio.join(&ext_folder);
+        let destino_base = destino_personalizado.unwrap_or(directorio);
+        let destino_dir = destino_base.join(&ext_folder);
 
-        if !dry_run && !destino_dir.exists() {
+        if !destino_dir.exists() {
             if let Err(e) = fs::create_dir(&destino_dir) {
                 eprintln!("ERROR: No se pudo crear carpeta {:?}: {}", destino_dir, e);
                 return (Vec::new(), 0);
@@ -40,24 +60,19 @@ impl Mover {
                 conflictos += 1;
             }
 
-            if dry_run {
-                movidos.push(MoveRecord {
-                    origen: archivo.to_string_lossy().to_string(),
-                    destino: destino.to_string_lossy().to_string(),
-                });
-            } else {
-                match fs::rename(archivo, &destino) {
-                    Ok(_) => {
-                        movidos.push(MoveRecord {
-                            origen: archivo.to_string_lossy().to_string(),
-                            destino: destino.to_string_lossy().to_string(),
-                        });
-                    }
-                    Err(e) => {
-                        eprintln!("ERROR: {:?}: {}", nombre, e);
-                    }
+            match fs::rename(archivo, &destino) {
+                Ok(_) => {
+                    movidos.push(MoveRecord {
+                        origen: archivo.to_string_lossy().to_string(),
+                        destino: destino.to_string_lossy().to_string(),
+                    });
+                }
+                Err(e) => {
+                    eprintln!("ERROR: {:?}: {}", nombre, e);
                 }
             }
+
+            barra.incremento();
         }
 
         (movidos, conflictos)
@@ -88,6 +103,26 @@ impl Mover {
                 return destino_dir.join(format!("{}_{}{}", stem, timestamp, ext));
             }
         }
+    }
+
+    pub fn calcular_destino(
+        &self,
+        archivo: &Path,
+        directorio: &Path,
+        extension: &str,
+        destino_personalizado: Option<&Path>,
+    ) -> std::path::PathBuf {
+        let ext_folder = extension.trim_start_matches('.').to_lowercase();
+        let destino_base = destino_personalizado.unwrap_or(directorio);
+        let destino_dir = destino_base.join(&ext_folder);
+        let nombre = archivo.file_name().unwrap_or_default();
+        let mut destino = destino_dir.join(nombre);
+
+        if destino.exists() {
+            destino = self.generar_nombre_unico(&destino_dir, archivo);
+        }
+
+        destino
     }
 }
 
