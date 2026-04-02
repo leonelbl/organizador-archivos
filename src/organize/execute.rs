@@ -94,7 +94,12 @@ impl OrganizeCommand {
         }
 
         if total_movidos == 0 {
-            self.output.no_files_found();
+            if args.json {
+                let json = JsonOutput::new();
+                json.print_no_files();
+            } else {
+                self.output.no_files_found();
+            }
             return Ok(());
         }
 
