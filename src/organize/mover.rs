@@ -1,7 +1,7 @@
+use crate::shared::domain::MoveRecord;
+use chrono::Local;
 use std::fs;
 use std::path::Path;
-use chrono::Local;
-use crate::shared::domain::MoveRecord;
 
 pub struct Mover;
 
@@ -16,9 +16,11 @@ impl Mover {
         directorio: &Path,
         extension: &str,
         dry_run: bool,
+        destino_personalizado: Option<&Path>,
     ) -> (Vec<MoveRecord>, usize) {
         let ext_folder = extension.trim_start_matches('.').to_lowercase();
-        let destino_dir = directorio.join(&ext_folder);
+        let destino_base = destino_personalizado.unwrap_or(directorio);
+        let destino_dir = destino_base.join(&ext_folder);
 
         if !dry_run && !destino_dir.exists() {
             if let Err(e) = fs::create_dir(&destino_dir) {

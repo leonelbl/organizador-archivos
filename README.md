@@ -62,6 +62,7 @@ organizador-archivos <DIRECTORIO> [OPTIONS]
 -j, --json              Salida en formato JSON
 -l, --log <ARCHIVO>     Guardar registro en archivo
 -d, --deshacer          Deshacer última operación
+    --destino <DIR>       Directorio de destino personalizado
 -h, --help              Mostrar ayuda
 ```
 
@@ -88,6 +89,9 @@ organizador-archivos ~/Descargas -e zip -l ~/.organizador.log -s
 
 # Deshacer última operación
 organizador-archivos -d
+
+# Destino personalizado
+organizador-archivos ~/Descargas -e pdf -o ~/Documentos -s
 ```
 
 ## Cómo funciona

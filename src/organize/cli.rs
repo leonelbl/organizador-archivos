@@ -10,6 +10,7 @@ pub struct OrganizeArgs {
     pub json: bool,
     pub log_file: Option<PathBuf>,
     pub undo_file: PathBuf,
+    pub destino: Option<PathBuf>,
 }
 
 impl OrganizeArgs {

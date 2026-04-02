@@ -1,6 +1,6 @@
-use crate::shared::{Notifier, Output};
-use crate::organize::cli::UndoArgs;
 use super::History;
+use crate::organize::cli::UndoArgs;
+use crate::shared::{Notifier, Output};
 
 pub struct UndoCmd {
     output: Output,
@@ -17,9 +17,12 @@ impl UndoCmd {
 
     pub fn execute(&self, args: &UndoArgs) -> Result<(), String> {
         let history = History::new(args.undo_file.clone());
-        let record = history.get_last()?.ok_or("No hay historial para revertir")?;
+        let record = history
+            .get_last()?
+            .ok_or("No hay historial para revertir")?;
 
-        self.output.undo_start(&record.timestamp, &record.directorio, record.movidos.len());
+        self.output
+            .undo_start(&record.timestamp, &record.directorio, record.movidos.len());
 
         let revertidos = history.revert()?;
 

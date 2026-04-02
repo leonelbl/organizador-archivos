@@ -10,9 +10,14 @@ use std::path::PathBuf;
 )]
 pub struct Cli {
     #[arg(help = "Directorio a escanear", value_hint = ValueHint::DirPath)]
-    pub directorio: PathBuf,
+    pub directorio: Option<PathBuf>,
 
-    #[arg(short = 'e', long = "extension", help = "Extensión a organizar", value_name = "EXT")]
+    #[arg(
+        short = 'e',
+        long = "extension",
+        help = "Extensión a organizar",
+        value_name = "EXT"
+    )]
     pub extension: Option<String>,
 
     #[arg(short = 'r', long = "recursivo", help = "Buscar en subdirectorios")]
@@ -32,4 +37,7 @@ pub struct Cli {
 
     #[arg(short = 'd', long = "deshacer", help = "Deshacer última operación")]
     pub deshacer: bool,
+
+    #[arg(long = "destino", help = "Directorio de destino personalizado", value_hint = ValueHint::DirPath)]
+    pub destino: Option<PathBuf>,
 }
