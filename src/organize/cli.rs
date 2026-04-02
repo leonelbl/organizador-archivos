@@ -3,7 +3,7 @@ use std::path::PathBuf;
 #[derive(Debug, Clone)]
 pub struct OrganizeArgs {
     pub directorio: PathBuf,
-    pub extension: Option<String>,
+    pub extension: Vec<String>,
     pub recursivo: bool,
     pub yes: bool,
     pub dry_run: bool,
@@ -13,11 +13,23 @@ pub struct OrganizeArgs {
 }
 
 impl OrganizeArgs {
-    pub fn get_extension(&self) -> Result<String, String> {
-        self.extension
-            .clone()
+    pub fn get_extensions(&self) -> Result<Vec<String>, String> {
+        if self.extension.is_empty() {
+            return Err("Debe especificar al menos una extensión".to_string());
+        }
+
+        let extensions: Vec<String> = self
+            .extension
+            .iter()
+            .flat_map(|e| e.split(',').map(|s| s.trim().to_string()))
             .filter(|e| !e.is_empty())
-            .ok_or_else(|| "Debe especificar una extensión".to_string())
+            .collect();
+
+        if extensions.is_empty() {
+            return Err("Debe especificar al menos una extensión".to_string());
+        }
+
+        Ok(extensions)
     }
 
     pub fn validate_dir(&self) -> Result<(), String> {

@@ -22,8 +22,16 @@ fn main() {
             std::process::exit(1);
         }
     } else {
+        let directorio = match cli.directorio {
+            Some(d) => d,
+            None => {
+                eprintln!("ERROR: Debe especificar un directorio");
+                std::process::exit(1);
+            }
+        };
+
         let args = OrganizeArgs {
-            directorio: cli.directorio,
+            directorio,
             extension: cli.extension,
             recursivo: cli.recursivo,
             yes: cli.yes,

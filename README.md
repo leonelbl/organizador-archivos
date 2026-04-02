@@ -5,6 +5,7 @@ Herramienta CLI en Rust para organizar automáticamente archivos por extensión.
 ## Características
 
 - **Feature-Based Architecture**: Código modular y extensible
+- **Múltiples extensiones**: Organiza varios tipos de archivos a la vez
 - **Comando por defecto**: `organizar` se ejecuta sin necesidad de especificarlo
 - **Modo recursivo**: Busca en subdirectorios
 - **Simulación**: Previsualiza archivos sin mover
@@ -55,14 +56,14 @@ organizador-archivos <DIRECTORIO> [OPTIONS]
 
 **Opciones:**
 ```
--e, --extension <EXT>   Extensión a organizar
--r, --recursivo         Buscar en subdirectorios
--s, --si                Confirmar automáticamente
--n, --simular           Simular sin mover archivos
--j, --json              Salida en formato JSON
--l, --log <ARCHIVO>     Guardar registro en archivo
--d, --deshacer          Deshacer última operación
--h, --help              Mostrar ayuda
+-e, --extension <EXT>...  Extensiones a organizar (separadas por coma)
+-r, --recursivo          Buscar en subdirectorios
+-s, --si                 Confirmar automáticamente
+-n, --simular            Simular sin mover archivos
+-j, --json               Salida en formato JSON
+-l, --log <ARCHIVO>      Guardar registro en archivo
+-d, --deshacer           Deshacer última operación
+-h, --help               Mostrar ayuda
 ```
 
 ## Ejemplos
@@ -88,6 +89,12 @@ organizador-archivos ~/Descargas -e zip -l ~/.organizador.log -s
 
 # Deshacer última operación
 organizador-archivos -d
+
+# Múltiples extensiones (con coma)
+organizador-archivos ~/Descargas -e pdf,doc,txt -s
+
+# Múltiples extensiones (con múltiples flags)
+organizador-archivos ~/Descargas -e pdf -e doc -e txt -s
 ```
 
 ## Cómo funciona

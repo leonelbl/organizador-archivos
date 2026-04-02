@@ -1,7 +1,8 @@
+use super::cli::OrganizeArgs;
+use super::{Mover, Scanner};
+use crate::shared::domain::MoveRecord;
 use crate::shared::{JsonOutput, Logger, Notifier, OperationRecord, Output};
 use crate::undo::History;
-use super::{Mover, Scanner};
-use super::cli::OrganizeArgs;
 
 pub struct OrganizeCommand {
     scanner: Scanner,
@@ -23,53 +24,74 @@ impl OrganizeCommand {
     }
 
     pub fn execute(&self, args: &OrganizeArgs) -> Result<(), String> {
-        let extension = args.get_extension()?;
+        let extensions = args.get_extensions()?;
         args.validate_dir()?;
 
-        let archivos = self.scanner.scan(&args.directorio, &extension, args.recursivo);
+        let mut total_movidos = 0;
+        let mut total_conflictos = 0;
+        let mut todos_movidos: Vec<MoveRecord> = Vec::new();
 
-        if archivos.is_empty() {
+        for extension in &extensions {
+            let archivos = self
+                .scanner
+                .scan(&args.directorio, extension, args.recursivo);
+
+            if archivos.is_empty() {
+                continue;
+            }
+
+            if !args.yes && !args.dry_run && total_movidos == 0 {
+                self.output
+                    .files_found(archivos.len(), &args.directorio.to_string_lossy());
+                if !self.output.confirm() {
+                    self.output.cancelled();
+                    return Ok(());
+                }
+            }
+
+            let (movidos, conflictos) =
+                self.mover
+                    .mover(&archivos, &args.directorio, extension, args.dry_run);
+
+            total_movidos += movidos.len();
+            total_conflictos += conflictos;
+            todos_movidos.extend(movidos);
+        }
+
+        if total_movidos == 0 {
             self.output.no_files_found();
             return Ok(());
         }
 
-        if !args.yes && !args.dry_run {
-            self.output.files_found(archivos.len(), &args.directorio.to_string_lossy());
-            if !self.output.confirm() {
-                self.output.cancelled();
-                return Ok(());
-            }
-        }
-
-        let (movidos, conflictos) = self.mover.mover(&archivos, &args.directorio, &extension, args.dry_run);
-
-        if !args.dry_run && !movidos.is_empty() {
+        if !args.dry_run && !todos_movidos.is_empty() {
             let record = OperationRecord::new(
                 &args.directorio.to_string_lossy(),
-                &extension,
-                movidos.clone(),
+                &extensions.join(","),
+                todos_movidos,
             );
             let history = History::new(args.undo_file.clone());
             let _ = history.save(&record);
         }
 
-        self.logger.log(&args.directorio.to_string_lossy(), &extension, movidos.len(), conflictos);
+        self.logger.log(
+            &args.directorio.to_string_lossy(),
+            &extensions.join(","),
+            total_movidos,
+            total_conflictos,
+        );
 
         if args.json {
             let json = JsonOutput::new();
-            if movidos.is_empty() && !args.dry_run {
-                json.print_no_files();
-            } else {
-                json.print_result(movidos.len(), conflictos, args.dry_run);
-            }
+            json.print_result(total_movidos, total_conflictos, args.dry_run);
         } else {
-            self.output.finished(movidos.len(), conflictos, args.dry_run);
+            self.output
+                .finished(total_movidos, total_conflictos, args.dry_run);
         }
 
-        if !args.dry_run && !movidos.is_empty() {
+        if !args.dry_run && total_movidos > 0 {
             self.notifier.notify(
                 "Organizador de Archivos",
-                &format!("Se movieron {} archivos a '{}'", movidos.len(), extension),
+                &format!("Se movieron {} archivos", total_movidos),
             );
         }
 

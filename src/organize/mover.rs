@@ -1,7 +1,7 @@
+use crate::shared::domain::MoveRecord;
+use chrono::Local;
 use std::fs;
 use std::path::Path;
-use chrono::Local;
-use crate::shared::domain::MoveRecord;
 
 pub struct Mover;
 
