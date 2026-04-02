@@ -1,7 +1,7 @@
-use crate::shared::{JsonOutput, Logger, Notifier, OperationRecord, Output};
-use crate::undo::History;
-use super::{Mover, Scanner};
 use super::cli::OrganizeArgs;
+use super::{Mover, Scanner};
+use crate::shared::{BarraProgreso, JsonOutput, Logger, Notifier, OperationRecord, Output};
+use crate::undo::History;
 
 pub struct OrganizeCommand {
     scanner: Scanner,
@@ -26,7 +26,9 @@ impl OrganizeCommand {
         let extension = args.get_extension()?;
         args.validate_dir()?;
 
-        let archivos = self.scanner.scan(&args.directorio, &extension, args.recursivo);
+        let archivos = self
+            .scanner
+            .scan(&args.directorio, &extension, args.recursivo);
 
         if archivos.is_empty() {
             self.output.no_files_found();
@@ -34,14 +36,27 @@ impl OrganizeCommand {
         }
 
         if !args.yes && !args.dry_run {
-            self.output.files_found(archivos.len(), &args.directorio.to_string_lossy());
+            self.output
+                .files_found(archivos.len(), &args.directorio.to_string_lossy());
             if !self.output.confirm() {
                 self.output.cancelled();
                 return Ok(());
             }
         }
 
-        let (movidos, conflictos) = self.mover.mover(&archivos, &args.directorio, &extension, args.dry_run);
+        let usar_barra = archivos.len() >= 5;
+
+        let (movidos, conflictos) = if usar_barra && !args.dry_run {
+            let barra = BarraProgreso::new(archivos.len());
+            let resultado =
+                self.mover
+                    .mover_con_progreso(&archivos, &args.directorio, &extension, &barra);
+            barra.finalizar();
+            resultado
+        } else {
+            self.mover
+                .mover(&archivos, &args.directorio, &extension, args.dry_run)
+        };
 
         if !args.dry_run && !movidos.is_empty() {
             let record = OperationRecord::new(
@@ -53,7 +68,12 @@ impl OrganizeCommand {
             let _ = history.save(&record);
         }
 
-        self.logger.log(&args.directorio.to_string_lossy(), &extension, movidos.len(), conflictos);
+        self.logger.log(
+            &args.directorio.to_string_lossy(),
+            &extension,
+            movidos.len(),
+            conflictos,
+        );
 
         if args.json {
             let json = JsonOutput::new();
@@ -63,7 +83,8 @@ impl OrganizeCommand {
                 json.print_result(movidos.len(), conflictos, args.dry_run);
             }
         } else {
-            self.output.finished(movidos.len(), conflictos, args.dry_run);
+            self.output
+                .finished(movidos.len(), conflictos, args.dry_run);
         }
 
         if !args.dry_run && !movidos.is_empty() {
