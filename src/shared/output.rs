@@ -1,5 +1,7 @@
 use colored::*;
+use std::collections::HashMap;
 use std::io::{self, Write};
+use std::path::PathBuf;
 
 pub struct Output;
 
@@ -74,6 +76,52 @@ impl Output {
             "\nFINALIZADO: Se revirtieron {} archivos.",
             revertidos.to_string().yellow().bold()
         );
+    }
+
+    pub fn mostrar_arbol_simulacion(
+        &self,
+        archivos: &HashMap<String, Vec<(PathBuf, PathBuf)>>,
+        directorio_base: &str,
+    ) {
+        println!("\n{}", "═".repeat(50).bright_blue());
+        println!(
+            "{} {} -{}",
+            "SIMULACIÓN".bright_green().bold(),
+            "Cambios que se realizarán".white(),
+            "═".repeat(16).bright_blue()
+        );
+        println!("{}", "═".repeat(50).bright_blue());
+
+        println!("\n{}", directorio_base.cyan().bold());
+        println!("{}\n", "─".repeat(50).bright_black());
+
+        for (extension, movimientos) in archivos {
+            let carpeta = format!("📁 {}/", extension).yellow().bold();
+            println!("  {}", carpeta);
+
+            for (origen, destino) in movimientos {
+                let nombre_origen = origen.file_name().and_then(|n| n.to_str()).unwrap_or("?");
+                let nombre_destino = destino.file_name().and_then(|n| n.to_str()).unwrap_or("?");
+
+                println!(
+                    "  {} {} {} {}",
+                    "├──".bright_black(),
+                    nombre_origen.white(),
+                    "→".bright_green(),
+                    nombre_destino.bright_cyan()
+                );
+            }
+            println!("{}\n", "  ".white());
+        }
+
+        let total: usize = archivos.values().map(|v| v.len()).sum();
+        println!(
+            "{} {} {}",
+            "Total:".white(),
+            total.to_string().yellow().bold(),
+            "archivos".white()
+        );
+        println!("{}\n", "─".repeat(50).bright_black());
     }
 }
 

@@ -7,7 +7,7 @@ Herramienta CLI en Rust para organizar automáticamente archivos por extensión.
 - **Feature-Based Architecture**: Código modular y extensible
 - **Comando por defecto**: `organizar` se ejecuta sin necesidad de especificarlo
 - **Modo recursivo**: Busca en subdirectorios
-- **Simulación**: Previsualiza archivos sin mover
+- **Simulación mejorada**: Muestra árbol de cambios antes de ejecutar
 - **Resolución de conflictos**: Nombres duplicados se renombran automáticamente
 - **Deshacer**: Revierte movimientos realizados
 - **Salida JSON**: Para integración con scripts

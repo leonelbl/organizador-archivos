@@ -1,7 +1,7 @@
+use crate::shared::domain::MoveRecord;
+use chrono::Local;
 use std::fs;
 use std::path::Path;
-use chrono::Local;
-use crate::shared::domain::MoveRecord;
 
 pub struct Mover;
 
@@ -63,7 +63,7 @@ impl Mover {
         (movidos, conflictos)
     }
 
-    fn generar_nombre_unico(&self, destino_dir: &Path, archivo: &Path) -> std::path::PathBuf {
+    pub fn generar_nombre_unico(&self, destino_dir: &Path, archivo: &Path) -> std::path::PathBuf {
         let ext = archivo
             .extension()
             .and_then(|e| e.to_str())
