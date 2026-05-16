@@ -1,6 +1,5 @@
 use crate::shared::domain::OperationRecord;
-use std::fs::{self, File};
-use std::io::{BufRead, BufReader, Write};
+use std::fs;
 use std::path::{Path, PathBuf};
 
 pub struct History {
@@ -13,14 +12,8 @@ impl History {
     }
 
     pub fn save(&self, record: &OperationRecord) -> Result<(), String> {
-        let mut file = fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&self.file_path)
-            .map_err(|e| e.to_string())?;
-
         let json = serde_json::to_string(record).map_err(|e| e.to_string())?;
-        writeln!(file, "{}", json).map_err(|e| e.to_string())
+        fs::write(&self.file_path, json).map_err(|e| e.to_string())
     }
 
     pub fn get_last(&self) -> Result<Option<OperationRecord>, String> {
@@ -28,17 +21,14 @@ impl History {
             return Ok(None);
         }
 
-        let file = File::open(&self.file_path).map_err(|e| e.to_string())?;
-        let reader = BufReader::new(file);
-
-        let mut last = None;
-        for line in reader.lines().map_while(Result::ok) {
-            if let Ok(record) = serde_json::from_str::<OperationRecord>(&line) {
-                last = Some(record);
-            }
+        let content = fs::read_to_string(&self.file_path).map_err(|e| e.to_string())?;
+        if content.trim().is_empty() {
+            return Ok(None);
         }
 
-        Ok(last)
+        serde_json::from_str(&content)
+            .map(Some)
+            .map_err(|e| e.to_string())
     }
 
     pub fn revert(&self) -> Result<usize, String> {
@@ -81,26 +71,9 @@ impl History {
     }
 
     fn remove_last(&self) -> Result<(), String> {
-        if !self.file_path.exists() {
-            return Ok(());
-        }
-
-        let file = File::open(&self.file_path).map_err(|e| e.to_string())?;
-        let reader = BufReader::new(file);
-        let mut lineas: Vec<String> = reader.lines().map_while(Result::ok).collect();
-
-        if lineas.is_empty() {
-            return Ok(());
-        }
-
-        lineas.pop();
-        if lineas.is_empty() {
+        if self.file_path.exists() {
             fs::remove_file(&self.file_path).map_err(|e| e.to_string())?;
-        } else {
-            let mut file = File::create(&self.file_path).map_err(|e| e.to_string())?;
-            writeln!(file, "{}", lineas.join("\n")).map_err(|e| e.to_string())?;
         }
-
         Ok(())
     }
 }
