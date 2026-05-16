@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
+const MAX_ARCHIVOS: usize = 100_000;
+
 pub struct Scanner;
 
 impl Scanner {
@@ -21,7 +23,7 @@ impl Scanner {
             WalkDir::new(directorio).max_depth(1)
         };
 
-        walker
+        let mut archivos: Vec<PathBuf> = walker
             .into_iter()
             .filter_map(|e| e.ok())
             .filter(|e| {
@@ -38,7 +40,18 @@ impl Scanner {
                         .unwrap_or(false)
             })
             .map(|e| e.path().to_path_buf())
-            .collect()
+            .take(MAX_ARCHIVOS + 1)
+            .collect();
+
+        if archivos.len() > MAX_ARCHIVOS {
+            eprintln!(
+                "ADVERTENCIA: Se limitó el escaneo a {} archivos. Use un directorio más específico.",
+                MAX_ARCHIVOS
+            );
+            archivos.truncate(MAX_ARCHIVOS);
+        }
+
+        archivos
     }
 }
 
