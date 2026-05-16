@@ -30,18 +30,24 @@ impl OrganizeCommand {
         let extensions = args.get_extensions()?;
         let directorio = args.validate_dir()?;
 
-        if let Some(ref destino) = args.destino {
-            if !destino.exists() {
-                if let Err(e) = std::fs::create_dir_all(destino) {
-                    return Err(format!("No se pudo crear directorio de destino: {}", e));
-                }
-            } else if !destino.is_dir() {
+        let destino = args.destino.as_ref().map(|d| {
+            let d = if d.is_relative() {
+                directorio.join(d)
+            } else {
+                d.clone()
+            };
+            if !d.exists() {
+                std::fs::create_dir_all(&d)
+                    .map_err(|e| format!("No se pudo crear directorio de destino: {}", e))?;
+            } else if !d.is_dir() {
                 return Err("El destino especificado no es un directorio".to_string());
             }
-        }
+            d.canonicalize()
+                .map_err(|e| format!("Error al resolver ruta de destino: {}", e))
+        }).transpose()?;
 
         if args.dry_run {
-            return self.ejecutar_simulacion(args, &extensions, &directorio);
+            return self.ejecutar_simulacion(args, &extensions, &directorio, destino.as_deref());
         }
 
         let mut total_movidos = 0;
@@ -73,7 +79,7 @@ impl OrganizeCommand {
                     &archivos,
                     &directorio,
                     extension,
-                    args.destino.as_deref(),
+                    destino.as_deref(),
                     &barra,
                 );
                 barra.finalizar();
@@ -84,7 +90,7 @@ impl OrganizeCommand {
                     &directorio,
                     extension,
                     false,
-                    args.destino.as_deref(),
+                    destino.as_deref(),
                 )
             };
 
@@ -142,6 +148,7 @@ impl OrganizeCommand {
         args: &OrganizeArgs,
         extensions: &[String],
         directorio: &std::path::Path,
+        destino: Option<&std::path::Path>,
     ) -> Result<(), String> {
         let mut movimientos_por_ext: HashMap<String, Vec<(PathBuf, PathBuf)>> = HashMap::new();
         let mut total_archivos = 0;
@@ -162,7 +169,7 @@ impl OrganizeCommand {
                     archivo,
                     directorio,
                     extension,
-                    args.destino.as_deref(),
+                    destino,
                 );
                 movimientos.push((archivo.clone(), destino));
             }
@@ -179,9 +186,7 @@ impl OrganizeCommand {
             return Ok(());
         }
 
-        let directorio_base = args
-            .destino
-            .as_ref()
+        let directorio_base = destino
             .map(|d| d.to_string_lossy().to_string())
             .unwrap_or_else(|| directorio.to_string_lossy().to_string());
 
