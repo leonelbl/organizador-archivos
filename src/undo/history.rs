@@ -43,11 +43,28 @@ impl History {
 
     pub fn revert(&self) -> Result<usize, String> {
         let record = self.get_last()?.ok_or("No hay historial para revertir")?;
+        let directorio_base = Path::new(&record.directorio)
+            .canonicalize()
+            .map_err(|_| "El directorio del historial ya no existe".to_string())?;
         let mut revertidos = 0;
 
         for mov in record.movidos.iter().rev() {
             let origen = Path::new(&mov.destino);
             let destino = Path::new(&mov.origen);
+
+            let origen_ok = match origen.canonicalize() {
+                Ok(p) => p.starts_with(&directorio_base),
+                Err(_) => false,
+            };
+            let destino_ok = match destino.canonicalize() {
+                Ok(p) => p.starts_with(&directorio_base),
+                Err(_) => false,
+            };
+
+            if !origen_ok && !destino_ok {
+                eprintln!("ERROR: Path fuera del directorio permitido, se omite: {:?} -> {:?}", origen, destino);
+                continue;
+            }
 
             if origen.exists() {
                 if let Some(parent) = destino.parent() {
