@@ -20,9 +20,9 @@ impl Output {
 
     pub fn confirm(&self) -> bool {
         print!("{} ", "¿Confirmas mover estos archivos?".bold().yellow());
-        io::stdout().flush().unwrap();
+        let _ = io::stdout().flush();
         print!("[s/N]: ");
-        io::stdout().flush().unwrap();
+        let _ = io::stdout().flush();
 
         let mut respuesta = String::new();
         if io::stdin().read_line(&mut respuesta).is_err() {

@@ -177,7 +177,7 @@ impl OrganizeCommand {
             total_archivos += archivos.len();
             movimientos_por_ext
                 .entry(extension.clone())
-                .or_insert_with(Vec::new)
+                .or_default()
                 .extend(movimientos);
         }
 
