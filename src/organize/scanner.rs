@@ -9,7 +9,11 @@ impl Scanner {
     }
 
     pub fn scan(&self, directorio: &Path, extension: &str, recursivo: bool) -> Vec<PathBuf> {
-        let ext_filter = extension.trim_start_matches('.').to_lowercase();
+        let cleaned = extension.trim_start_matches('.');
+        if cleaned.is_empty() || !cleaned.chars().all(|c| c.is_alphanumeric()) {
+            return Vec::new();
+        }
+        let ext_filter = cleaned.to_lowercase();
 
         let walker = if recursivo {
             WalkDir::new(directorio)

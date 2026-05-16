@@ -36,7 +36,12 @@ impl Mover {
         destino_personalizado: Option<&Path>,
         barra: &BarraProgreso,
     ) -> (Vec<MoveRecord>, usize) {
-        let ext_folder = extension.trim_start_matches('.').to_lowercase();
+        let cleaned = extension.trim_start_matches('.');
+        if cleaned.is_empty() || !cleaned.chars().all(|c| c.is_alphanumeric()) {
+            eprintln!("ERROR: Extensión inválida '{}'", extension);
+            return (Vec::new(), 0);
+        }
+        let ext_folder = cleaned.to_lowercase();
         let destino_base = destino_personalizado.unwrap_or(directorio);
         let destino_dir = destino_base.join(&ext_folder);
 
@@ -112,7 +117,11 @@ impl Mover {
         extension: &str,
         destino_personalizado: Option<&Path>,
     ) -> std::path::PathBuf {
-        let ext_folder = extension.trim_start_matches('.').to_lowercase();
+        let cleaned = extension.trim_start_matches('.');
+        if cleaned.is_empty() || !cleaned.chars().all(|c| c.is_alphanumeric()) {
+            return directorio.join(archivo.file_name().unwrap_or_default());
+        }
+        let ext_folder = cleaned.to_lowercase();
         let destino_base = destino_personalizado.unwrap_or(directorio);
         let destino_dir = destino_base.join(&ext_folder);
         let nombre = archivo.file_name().unwrap_or_default();

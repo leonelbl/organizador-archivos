@@ -30,6 +30,16 @@ impl OrganizeArgs {
             return Err("Debe especificar al menos una extensión".to_string());
         }
 
+        for ext in &extensions {
+            let cleaned = ext.trim_start_matches('.');
+            if cleaned.is_empty() || !cleaned.chars().all(|c| c.is_alphanumeric()) {
+                return Err(format!(
+                    "Extensión inválida '{}': solo se permiten caracteres alfanuméricos",
+                    ext
+                ));
+            }
+        }
+
         Ok(extensions)
     }
 
