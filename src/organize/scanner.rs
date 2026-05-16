@@ -25,7 +25,12 @@ impl Scanner {
             .into_iter()
             .filter_map(|e| e.ok())
             .filter(|e| {
-                e.path().is_file()
+                let metadata = match e.metadata() {
+                    Ok(m) => m,
+                    Err(_) => return false,
+                };
+                !metadata.file_type().is_symlink()
+                    && metadata.is_file()
                     && e.path()
                         .extension()
                         .and_then(|s| s.to_str())
