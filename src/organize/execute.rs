@@ -28,7 +28,7 @@ impl OrganizeCommand {
 
     pub fn execute(&self, args: &OrganizeArgs) -> Result<(), String> {
         let extensions = args.get_extensions()?;
-        args.validate_dir()?;
+        let directorio = args.validate_dir()?;
 
         if let Some(ref destino) = args.destino {
             if !destino.exists() {
@@ -41,7 +41,7 @@ impl OrganizeCommand {
         }
 
         if args.dry_run {
-            return self.ejecutar_simulacion(args, &extensions);
+            return self.ejecutar_simulacion(args, &extensions, &directorio);
         }
 
         let mut total_movidos = 0;
@@ -51,7 +51,7 @@ impl OrganizeCommand {
         for extension in &extensions {
             let archivos = self
                 .scanner
-                .scan(&args.directorio, extension, args.recursivo);
+                .scan(&directorio, extension, args.recursivo);
 
             if archivos.is_empty() {
                 continue;
@@ -59,7 +59,7 @@ impl OrganizeCommand {
 
             if !args.yes && total_movidos == 0 {
                 self.output
-                    .files_found(archivos.len(), &args.directorio.to_string_lossy());
+                    .files_found(archivos.len(), &directorio.to_string_lossy());
                 if !self.output.confirm() {
                     self.output.cancelled();
                     return Ok(());
@@ -71,7 +71,7 @@ impl OrganizeCommand {
                 let barra = BarraProgreso::new(archivos.len());
                 let resultado = self.mover.mover_con_progreso(
                     &archivos,
-                    &args.directorio,
+                    &directorio,
                     extension,
                     args.destino.as_deref(),
                     &barra,
@@ -81,7 +81,7 @@ impl OrganizeCommand {
             } else {
                 self.mover.mover(
                     &archivos,
-                    &args.directorio,
+                    &directorio,
                     extension,
                     false,
                     args.destino.as_deref(),
@@ -104,7 +104,7 @@ impl OrganizeCommand {
         }
 
         let record = OperationRecord::new(
-            &args.directorio.to_string_lossy(),
+            &directorio.to_string_lossy(),
             &extensions.join(","),
             todos_movidos,
         );
@@ -112,7 +112,7 @@ impl OrganizeCommand {
         let _ = history.save(&record);
 
         self.logger.log(
-            &args.directorio.to_string_lossy(),
+            &directorio.to_string_lossy(),
             &extensions.join(","),
             total_movidos,
             total_conflictos,
@@ -137,6 +137,7 @@ impl OrganizeCommand {
         &self,
         args: &OrganizeArgs,
         extensions: &[String],
+        directorio: &std::path::Path,
     ) -> Result<(), String> {
         let mut movimientos_por_ext: HashMap<String, Vec<(PathBuf, PathBuf)>> = HashMap::new();
         let mut total_archivos = 0;
@@ -144,7 +145,7 @@ impl OrganizeCommand {
         for extension in extensions {
             let archivos = self
                 .scanner
-                .scan(&args.directorio, extension, args.recursivo);
+                .scan(directorio, extension, args.recursivo);
 
             if archivos.is_empty() {
                 continue;
@@ -155,7 +156,7 @@ impl OrganizeCommand {
             for archivo in &archivos {
                 let destino = self.mover.calcular_destino(
                     archivo,
-                    &args.directorio,
+                    directorio,
                     extension,
                     args.destino.as_deref(),
                 );
@@ -178,7 +179,7 @@ impl OrganizeCommand {
             .destino
             .as_ref()
             .map(|d| d.to_string_lossy().to_string())
-            .unwrap_or_else(|| args.directorio.to_string_lossy().to_string());
+            .unwrap_or_else(|| directorio.to_string_lossy().to_string());
 
         self.output
             .mostrar_arbol_simulacion(&movimientos_por_ext, &directorio_base);

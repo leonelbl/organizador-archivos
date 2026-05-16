@@ -43,11 +43,13 @@ impl OrganizeArgs {
         Ok(extensions)
     }
 
-    pub fn validate_dir(&self) -> Result<(), String> {
+    pub fn validate_dir(&self) -> Result<std::path::PathBuf, String> {
         if !self.directorio.exists() || !self.directorio.is_dir() {
             return Err("El directorio no existe o no es válido".to_string());
         }
-        Ok(())
+        self.directorio.canonicalize().map_err(|e| {
+            format!("Error al resolver la ruta del directorio: {}", e)
+        })
     }
 }
 
