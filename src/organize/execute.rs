@@ -103,8 +103,12 @@ impl OrganizeCommand {
             return Ok(());
         }
 
+        let directorio_str = directorio
+            .to_str()
+            .ok_or_else(|| "La ruta del directorio contiene caracteres no UTF-8".to_string())?;
+
         let record = OperationRecord::new(
-            &directorio.to_string_lossy(),
+            directorio_str,
             &extensions.join(","),
             todos_movidos,
         );
@@ -112,7 +116,7 @@ impl OrganizeCommand {
         let _ = history.save(&record);
 
         self.logger.log(
-            &directorio.to_string_lossy(),
+            directorio_str,
             &extensions.join(","),
             total_movidos,
             total_conflictos,

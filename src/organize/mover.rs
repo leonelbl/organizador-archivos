@@ -64,11 +64,29 @@ impl Mover {
                 conflictos += 1;
             }
 
+            let origen_str = match archivo.to_str() {
+                Some(s) => s.to_string(),
+                None => {
+                    eprintln!("ERROR: Nombre de archivo no UTF-8, se omite: {:?}", archivo);
+                    barra.incremento();
+                    continue;
+                }
+            };
+
+            let destino_str = match destino.to_str() {
+                Some(s) => s.to_string(),
+                None => {
+                    eprintln!("ERROR: Ruta de destino no UTF-8, se omite: {:?}", destino);
+                    barra.incremento();
+                    continue;
+                }
+            };
+
             match fs::rename(archivo, &destino) {
                 Ok(_) => {
                     movidos.push(MoveRecord {
-                        origen: archivo.to_string_lossy().to_string(),
-                        destino: destino.to_string_lossy().to_string(),
+                        origen: origen_str,
+                        destino: destino_str,
                     });
                 }
                 Err(e) => {
@@ -90,8 +108,11 @@ impl Mover {
 
         let ext = archivo
             .extension()
-            .and_then(|e| e.to_str())
-            .map(|e| format!(".{}", e))
+            .map(|e| {
+                e.to_str()
+                    .map(|s| format!(".{}", s))
+                    .unwrap_or_else(|| ".bin".to_string())
+            })
             .unwrap_or_default();
 
         let stem = archivo
