@@ -58,10 +58,9 @@ impl Mover {
         for archivo in archivos {
             let archivo = archivo.as_ref();
             let nombre = archivo.file_name().unwrap_or_default();
-            let mut destino = destino_dir.join(nombre);
+            let destino = self.generar_nombre_unico(&destino_dir, archivo);
 
-            if destino.exists() {
-                destino = self.generar_nombre_unico(&destino_dir, archivo);
+            if destino != destino_dir.join(nombre) {
                 conflictos += 1;
             }
 
@@ -84,6 +83,11 @@ impl Mover {
     }
 
     pub fn generar_nombre_unico(&self, destino_dir: &Path, archivo: &Path) -> std::path::PathBuf {
+        let original = destino_dir.join(archivo.file_name().unwrap_or_default());
+        if !original.exists() {
+            return original;
+        }
+
         let ext = archivo
             .extension()
             .and_then(|e| e.to_str())
@@ -124,14 +128,7 @@ impl Mover {
         let ext_folder = cleaned.to_lowercase();
         let destino_base = destino_personalizado.unwrap_or(directorio);
         let destino_dir = destino_base.join(&ext_folder);
-        let nombre = archivo.file_name().unwrap_or_default();
-        let mut destino = destino_dir.join(nombre);
-
-        if destino.exists() {
-            destino = self.generar_nombre_unico(&destino_dir, archivo);
-        }
-
-        destino
+        self.generar_nombre_unico(&destino_dir, archivo)
     }
 }
 
